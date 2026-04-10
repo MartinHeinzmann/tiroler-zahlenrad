@@ -320,10 +320,10 @@ h1 {
   .compass-mid .dc.west,
   .compass-mid .dc.ost { display: none; }
 
-  /* Show West/Ost in new row below wheel */
+  /* Mobile West/Ost stacked full width */
   .mobile-west-ost {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: .6rem;
     margin-top: .3rem;
   }
