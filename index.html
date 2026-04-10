@@ -165,12 +165,16 @@ h1 {
 .dc-kw   { font-size: .75rem; font-weight: 700; line-height: 1.4; margin-bottom: .2rem; }
 .dc-body { font-size: .72rem; color: var(--subtle); line-height: 1.45; }
 
-/* West/Ost always same size regardless of number state */
-.dc.west, .dc.ost {
-  font-size: .75rem;
-}
-.dc.west .dc-kw, .dc.ost .dc-kw { font-size: .75rem; }
-.dc.west .dc-body, .dc.ost .dc-body { font-size: .72rem; }
+/* Mobile West/Ost block - hidden on desktop */
+.mobile-west-ost { display: none; }
+
+/* Nord, Sued, Mitte full width of compass area */
+.nord-wrap .dc.nord,
+.sued-wrap .dc.sued { max-width: 100%; width: 100%; }
+.mitte-wrap .dc.mitte { max-width: 100%; width: 100%; }
+
+/* West/Ost no overflow cutting */
+.dc.west, .dc.ost { min-width: 0; }
 
 /* ── WHEEL ── */
 .wheel-col { display: flex; flex-direction: column; align-items: center; }
@@ -327,6 +331,7 @@ h1 {
     gap: .6rem;
     margin-top: .3rem;
   }
+  .dc.west, .dc.ost { overflow: visible; }
 
   .wheel-outer-ring { width: 220px; height: 220px; }
   .b-nord,.b-sued,.b-ost,.b-west { width: 48px; height: 48px; }
