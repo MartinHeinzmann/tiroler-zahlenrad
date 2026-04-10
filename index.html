@@ -307,13 +307,34 @@ h1 {
 @media (max-width: 820px) {
   .two-col { grid-template-columns: 1fr; }
   .sig-col { position: static; }
-  .compass-mid { grid-template-columns: minmax(0,1fr) 190px minmax(0,1fr); }
-  .wheel-outer-ring { width: 190px; height: 190px; }
-  .b-nord,.b-sued,.b-ost,.b-west { width: 44px; height: 44px; }
-  .b-mitte { width: 52px; height: 52px; }
-  .dc.west, .dc.ost { overflow: hidden; }
-  .dc.west .dc-kw, .dc.ost .dc-kw { font-size: .72rem !important; font-weight: 700; }
-  .dc.west .dc-body, .dc.ost .dc-body { font-size: .68rem !important; }
+
+  /* Wheel standalone centered */
+  .compass-mid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .8rem;
+  }
+
+  /* Hide West/Ost from mid-row - shown below instead */
+  .compass-mid .dc.west,
+  .compass-mid .dc.ost { display: none; }
+
+  /* Show West/Ost in new row below wheel */
+  .mobile-west-ost {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .6rem;
+    margin-top: .3rem;
+  }
+
+  .wheel-outer-ring { width: 220px; height: 220px; }
+  .b-nord,.b-sued,.b-ost,.b-west { width: 48px; height: 48px; }
+  .b-mitte { width: 56px; height: 56px; }
+
+  .nord-wrap .dc.nord,
+  .sued-wrap .dc.sued { max-width: 100%; width: 100%; }
+  .mitte-wrap .dc.mitte { max-width: 100%; width: 100%; }
 }
 </style>
 </head>
@@ -390,6 +411,28 @@ h1 {
           </div>
           <div class="dc-kw">Kreativität, Mitgefühl, Naturverbundenheit, Harmonie</div>
           <div class="dc-body">sensibel, durchschauend, mitfühlend und kreativ</div>
+        </div>
+      </div>
+
+      <!-- Mobile only: West + Ost side by side below wheel -->
+      <div class="mobile-west-ost">
+        <div class="dc west no-number" id="dc-west-m">
+          <div class="dc-header">
+            <span class="dc-dot" style="background:var(--west)"></span>
+            <span class="dc-name">WESTEN 4/9</span>
+            <span class="dc-badge" id="badge-west-m"></span>
+          </div>
+          <div class="dc-kw">Ordnung, Sachlichkeit, Durchsetzungsvermögen</div>
+          <div class="dc-body">ehrgeizig, erfolgsorientiert, effizient, erfinderisch</div>
+        </div>
+        <div class="dc ost no-number" id="dc-ost-m">
+          <div class="dc-header">
+            <span class="dc-dot" style="background:var(--ost)"></span>
+            <span class="dc-name">OSTEN 3/8</span>
+            <span class="dc-badge" id="badge-ost-m"></span>
+          </div>
+          <div class="dc-kw">Kreativität, Mitgefühl, Naturverbundenheit</div>
+          <div class="dc-body">sensibel, durchschauend, mitfühlend, kreativ</div>
         </div>
       </div>
 
@@ -822,6 +865,12 @@ function berechne() {
     setDirCard(`dc-${dir}`,  assigned[dir].length > 0);
   });
 
+  // Sync mobile West/Ost duplicate cards
+  setBadge('badge-west-m', assigned.west);
+  setBadge('badge-ost-m',  assigned.ost);
+  setDirCard('dc-west-m',  assigned.west.length > 0);
+  setDirCard('dc-ost-m',   assigned.ost.length > 0);
+
   // Show signature
   const key = makeSigKey(assigned);
   if (SIG[key]) {
@@ -842,6 +891,18 @@ document.getElementById('inp-datum').addEventListener('input', function () {
 document.getElementById('inp-datum').addEventListener('keydown', e => {
   if (e.key === 'Enter') berechne();
 });
+
+// Init on load
+window.onload = () => {
+  ['nord','ost','west','sued','mitte'].forEach(dir => {
+    const el = document.getElementById(`b-${dir}`);
+    el.innerHTML = DIR_LABEL[dir];
+    el.classList.add('empty');
+    document.getElementById(`dc-${dir}`).classList.add('no-number');
+  });
+  document.getElementById('dc-west-m').classList.add('no-number');
+  document.getElementById('dc-ost-m').classList.add('no-number');
+};
 </script>
 </body>
 </html>
