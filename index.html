@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tiroler Zahlenrad</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lato:ital,wght@0,300;0,400;0,700;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --nord:   #5b9bd5;
+  --sued:   #e07070;
+  --ost:    #5aaa6a;
+  --west:   #909090;
+  --mitte:  #d4aa00;
+  --bg:     #f5f0e8;
+  --card:   #fffdf8;
+  --border: #c8b89a;
+  --text:   #2c2416;
+  --subtle: #7a6a50;
+  --wood:   #8b6914;
+  --woodl:  #c4952a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Lato', sans-serif;
+  background: var(--bg);
+  background-image:
+    radial-gradient(ellipse at 15% 15%, #e8dcc8 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 85%, #ddd0b8 0%, transparent 55%);
+  min-height: 100vh;
+  color: var(--text);
+  padding: 1.5rem 1rem 4rem;
+}
+
+h1 {
+  font-family: 'Cinzel', serif;
+  font-size: 1.8rem; font-weight: 700;
+  text-align: center; letter-spacing: .12em;
+  color: var(--wood); margin-bottom: .2rem;
+}
+.subtitle {
+  text-align: center; font-size: .8rem;
+  color: var(--subtle); font-style: italic;
+  letter-spacing: .06em; margin-bottom: 1.5rem;
+}
+
+/* ── INPUT CARD ── */
+.input-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,.07);
+  max-width: 1200px; margin: 0 auto 1.8rem; padding: 1.4rem;
+}
+.form-row { display: flex; gap: .75rem; margin-bottom: .85rem; flex-wrap: wrap; }
+.form-row input {
+  flex: 1; min-width: 150px; padding: .6rem 1rem;
+  border: 1.5px solid var(--border); border-radius: 9px;
+  font-family: 'Lato', sans-serif; font-size: .95rem;
+  background: #fff; color: var(--text); outline: none;
+  transition: border-color .2s;
+}
+.form-row input:focus { border-color: var(--wood); }
+#berechnen {
+  width: 100%; padding: .7rem;
+  background: linear-gradient(135deg, var(--wood), var(--woodl));
+  color: #fff; border: none; border-radius: 9px;
+  font-family: 'Cinzel', serif; font-size: .95rem;
+  letter-spacing: .1em; cursor: pointer;
+  transition: opacity .2s, transform .1s;
+}
+#berechnen:hover  { opacity: .9; transform: translateY(-1px); }
+#berechnen:active { transform: translateY(0); }
+#datum-anzeige {
+  text-align: center; font-size: .85rem; color: var(--subtle);
+  margin-top: .75rem; font-style: italic; min-height: 1.2em;
+}
+
+/* ── TWO-COLUMN LAYOUT ── */
+.two-col {
+  max-width: 1200px; margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 620px) 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+/* ══════════════════════════════
+   LEFT: COMPASS
+══════════════════════════════ */
+.compass-outer { width: 100%; }
+
+/* Nord above */
+.nord-wrap {
+  display: flex; justify-content: center;
+  position: relative; margin-bottom: 0;
+}
+.nord-wrap::after {
+  content: ''; position: absolute; bottom: -7px; left: 50%;
+  transform: translateX(-50%); width: 2px; height: 7px;
+  background: var(--border); opacity: .5;
+}
+
+/* Mid row: West | Wheel | Ost */
+.compass-mid {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 210px minmax(0,1fr);
+  align-items: center;
+  gap: 0;
+}
+
+/* Sued below */
+.sued-wrap {
+  display: flex; justify-content: center;
+  position: relative; margin-top: 0;
+}
+.sued-wrap::before {
+  content: ''; position: absolute; top: -7px; left: 50%;
+  transform: translateX(-50%); width: 2px; height: 7px;
+  background: var(--border); opacity: .5;
+}
+
+/* Mitte box */
+.mitte-wrap {
+  display: flex; justify-content: center;
+  margin-top: .6rem; position: relative;
+}
+.mitte-wrap::before {
+  content: ''; position: absolute; top: -7px; left: 50%;
+  transform: translateX(-50%); width: 2px; height: 7px;
+  background: var(--border); opacity: .5;
+}
+
+/* Direction cards */
+.dc {
+  border-radius: 12px; padding: .75rem .9rem;
+  border: 2px solid transparent; transition: opacity .3s;
+}
+.dc.nord  { background: #eef5fc; border-color: #bad3ee; max-width: 250px; width: 100%; }
+.dc.west  { background: #f4f4f4; border-color: #d0d0d0; position: relative; min-width: 0; }
+.dc.ost   { background: #eef8f0; border-color: #b0ddb8; position: relative; min-width: 0; }
+.dc.sued  { background: #fdf0f0; border-color: #f0c0c0; max-width: 250px; width: 100%; }
+.dc.mitte { background: #fdf9e8; border-color: #e0cc80; max-width: 320px; width: 100%; text-align: center; }
+
+.dc.west::after  { content: ''; position: absolute; right: -7px; top: 50%; transform: translateY(-50%); height: 2px; width: 7px; background: var(--border); opacity: .5; }
+.dc.ost::before  { content: ''; position: absolute; left:  -7px; top: 50%; transform: translateY(-50%); height: 2px; width: 7px; background: var(--border); opacity: .5; }
+
+/* no-number = italic + muted */
+.dc.no-number .dc-kw,
+.dc.no-number .dc-body { font-style: italic; color: #b5a898; }
+
+.dc-header { display: flex; align-items: center; gap: .4rem; margin-bottom: .3rem; }
+.dc.mitte .dc-header { justify-content: center; }
+.dc-dot   { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.dc-name  { font-family: 'Cinzel', serif; font-size: .7rem; font-weight: 700; letter-spacing: .05em; flex: 1; }
+.dc-badge {
+  font-size: .68rem; font-weight: 700; padding: .1rem .42rem;
+  border-radius: 20px; color: #fff; white-space: nowrap;
+}
+.dc.nord  .dc-badge { background: var(--nord); }
+.dc.west  .dc-badge { background: var(--west); }
+.dc.ost   .dc-badge { background: var(--ost);  }
+.dc.sued  .dc-badge { background: var(--sued); }
+.dc.mitte .dc-badge { background: #b8940a; }
+
+.dc-kw   { font-size: .75rem; font-weight: 700; line-height: 1.4; margin-bottom: .2rem; }
+.dc-body { font-size: .72rem; color: var(--subtle); line-height: 1.45; }
+
+/* ── WHEEL ── */
+.wheel-col { display: flex; flex-direction: column; align-items: center; }
+.wheel-outer-ring {
+  width: 210px; height: 210px; position: relative;
+}
+.wheel-ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: conic-gradient(
+    #b8902a 0deg,#d4aa40 40deg,#c49820 80deg,
+    #b8902a 120deg,#d4aa40 200deg,#c49820 280deg,#b8902a 360deg
+  );
+  box-shadow: 0 4px 18px rgba(0,0,0,.18), inset 0 2px 5px rgba(255,255,255,.2);
+}
+.wheel-inner {
+  position: absolute; inset: 16px; border-radius: 50%;
+  background: var(--bg); box-shadow: inset 0 2px 8px rgba(0,0,0,.1);
+}
+.wheel-inner::before, .wheel-inner::after {
+  content: ''; position: absolute; background: var(--subtle); opacity: .25;
+}
+.wheel-inner::before { top: 50%; left: 0; right: 0; height: 1px; transform: translateY(-50%); }
+.wheel-inner::after  { left: 50%; top: 0; bottom: 0; width: 1px; transform: translateX(-50%); }
+
+/* Bubbles */
+.bubble {
+  position: absolute; border-radius: 50%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-weight: 700; text-align: center;
+  transform: translate(-50%, -50%); z-index: 2;
+  transition: background .3s;
+}
+.bubble.empty {
+  background: rgba(150,150,150,.18) !important;
+  border: 2px dashed rgba(150,150,150,.4);
+  box-shadow: none !important;
+  color: rgba(120,110,100,.6);
+  font-family: 'Cinzel', serif;
+  font-size: .88rem; font-weight: 700;
+  letter-spacing: .04em;
+}
+.bubble .bnum  { font-size: .72rem; line-height: 1.1; color: #fff; letter-spacing: .02em; }
+.bubble .barrow { font-size: .88rem; line-height: 1; color: #fff; }
+
+.b-nord  { top: 11%; left: 50%; width: 52px; height: 52px; background: var(--nord); box-shadow: 0 3px 10px rgba(91,155,213,.5); }
+.b-sued  { top: 89%; left: 50%; width: 52px; height: 52px; background: var(--sued); box-shadow: 0 3px 10px rgba(224,112,112,.5); }
+.b-ost   { top: 50%; left: 89%; width: 52px; height: 52px; background: var(--ost);  box-shadow: 0 3px 10px rgba(90,170,106,.5); }
+.b-west  { top: 50%; left: 11%; width: 52px; height: 52px; background: var(--west); box-shadow: 0 3px 10px rgba(120,120,120,.4); }
+.b-mitte { top: 50%; left: 50%; width: 60px; height: 60px; background: var(--mitte); box-shadow: 0 3px 14px rgba(212,170,0,.5); }
+.b-mitte .bnum  { color: #4a3800; }
+.b-mitte .barrow { color: #4a3800; }
+.b-mitte.empty   { color: rgba(100,80,0,.55); }
+
+.legend {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: .25rem .65rem; margin-top: .55rem;
+  font-size: .68rem; color: var(--subtle);
+}
+.legend span { display: flex; align-items: center; gap: .28rem; }
+.ldot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+/* ══════════════════════════════
+   RIGHT: SIGNATURE CARD
+══════════════════════════════ */
+.sig-col { position: sticky; top: 1.5rem; width: 100%; }
+
+.sig-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.07);
+  padding: 1.5rem;
+  width: 100%;
+  min-height: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Empty state */
+.sig-empty {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 420px; text-align: center; gap: .8rem;
+}
+.sig-empty-ring {
+  width: 72px; height: 72px; border-radius: 50%;
+  border: 2px dashed var(--border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--border); font-size: 1.6rem;
+}
+.sig-empty p {
+  font-size: .9rem; color: var(--subtle);
+  font-style: italic; line-height: 1.6; max-width: 240px;
+}
+
+/* Filled state */
+.sig-filled { display: none; flex-direction: column; gap: 1.1rem; }
+
+.sig-head { padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+.sig-nr {
+  font-size: .72rem; color: var(--subtle);
+  letter-spacing: .07em; text-transform: uppercase; margin-bottom: .3rem;
+}
+.sig-title {
+  font-family: 'Cinzel', serif; font-size: 1.3rem;
+  font-weight: 700; color: var(--wood); margin-bottom: .25rem; line-height: 1.3;
+}
+.sig-tagline {
+  font-size: .85rem; color: var(--subtle);
+  font-style: italic; line-height: 1.55; margin-bottom: .5rem;
+}
+.sig-zahlen-badge {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: #fdf3dd; border: 1px solid #e0cc80;
+  border-radius: 20px; padding: .22rem .8rem;
+  font-size: .78rem; font-weight: 700; color: var(--wood);
+}
+
+/* Sections */
+.sig-section { display: flex; flex-direction: column; gap: .45rem; }
+.sig-label {
+  display: flex; align-items: center; gap: .45rem;
+  font-size: .72rem; font-weight: 700;
+  letter-spacing: .07em; text-transform: uppercase;
+}
+.sig-label-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.sig-text {
+  font-size: .86rem; line-height: 1.7;
+  color: var(--text); padding-left: 1.3rem;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 820px) {
+  .two-col { grid-template-columns: 1fr; }
+  .sig-col { position: static; }
+  .compass-mid { grid-template-columns: 1fr 190px 1fr; }
+  .wheel-outer-ring { width: 190px; height: 190px; }
+  .b-nord,.b-sued,.b-ost,.b-west { width: 44px; height: 44px; }
+  .b-mitte { width: 52px; height: 52px; }
+}
+</style>
+</head>
+<body>
+
+<h1>Tiroler Zahlenrad</h1>
+<p class="subtitle">Das Buch der Lebenschancen · Paungger &amp; Poppe</p>
+
+<div class="input-card">
+  <div class="form-row">
+    <input type="text" id="inp-name"  placeholder="Name (optional)" />
+    <input type="text" id="inp-datum" placeholder="TT.MM.JJJJ" maxlength="10" />
+  </div>
+  <button id="berechnen" onclick="berechne()">Berechnen</button>
+  <div id="datum-anzeige"></div>
+</div>
+
+<div class="two-col">
+
+  <!-- ═══ LEFT: COMPASS ═══ -->
+  <div>
+    <div class="compass-outer">
+
+      <!-- Nord -->
+      <div class="nord-wrap">
+        <div class="dc nord no-number" id="dc-nord">
+          <div class="dc-header">
+            <span class="dc-dot" style="background:var(--nord)"></span>
+            <span class="dc-name">NORDEN 1 / 6</span>
+            <span class="dc-badge" id="badge-nord"></span>
+          </div>
+          <div class="dc-kw">Logik, Verstand, kühler Intellekt, Weisheit</div>
+          <div class="dc-body">gerne in der Öffentlichkeit · neugierig, offen, mutig</div>
+        </div>
+      </div>
+
+      <!-- Mid row -->
+      <div class="compass-mid">
+
+        <div class="dc west no-number" id="dc-west">
+          <div class="dc-header">
+            <span class="dc-dot" style="background:var(--west)"></span>
+            <span class="dc-name">WESTEN 4 / 9</span>
+            <span class="dc-badge" id="badge-west"></span>
+          </div>
+          <div class="dc-kw">Ordnung, Sachlichkeit, Durchsetzungsvermögen, handwerkl. Geschick</div>
+          <div class="dc-body">ehrgeizig, erfolgsorientiert, effizient, erfinderisch, gut mit Zahlen</div>
+        </div>
+
+        <div class="wheel-col">
+          <div class="wheel-outer-ring">
+            <div class="wheel-ring"></div>
+            <div class="wheel-inner"></div>
+            <div class="bubble b-nord empty" id="b-nord">N</div>
+            <div class="bubble b-ost  empty" id="b-ost">O</div>
+            <div class="bubble b-west empty" id="b-west">W</div>
+            <div class="bubble b-sued empty" id="b-sued">S</div>
+            <div class="bubble b-mitte empty" id="b-mitte">M</div>
+          </div>
+          <div class="legend">
+            <span><span class="ldot" style="background:var(--nord)"></span>N 1&amp;6</span>
+            <span><span class="ldot" style="background:var(--ost)"></span>O 3&amp;8</span>
+            <span><span class="ldot" style="background:var(--sued)"></span>S 2&amp;7</span>
+            <span><span class="ldot" style="background:var(--west)"></span>W 4&amp;9</span>
+            <span><span class="ldot" style="background:var(--mitte)"></span>M 0&amp;5</span>
+          </div>
+        </div>
+
+        <div class="dc ost no-number" id="dc-ost">
+          <div class="dc-header">
+            <span class="dc-dot" style="background:var(--ost)"></span>
+            <span class="dc-name">OSTEN 3 / 8</span>
+            <span class="dc-badge" id="badge-ost"></span>
+          </div>
+          <div class="dc-kw">Kreativität, Mitgefühl, Naturverbundenheit, Harmonie</div>
+          <div class="dc-body">sensibel, durchschauend, mitfühlend und kreativ</div>
+        </div>
+      </div>
+
+      <!-- Sued -->
+      <div class="sued-wrap">
+        <div class="dc sued no-number" id="dc-sued">
+          <div class="dc-header">
+            <span class="dc-dot" style="background:var(--sued)"></span>
+            <span class="dc-name">SÜDEN 2 / 7</span>
+            <span class="dc-badge" id="badge-sued"></span>
+          </div>
+          <div class="dc-kw">Lebensfreude, Intuition, Temperament, Feuer</div>
+          <div class="dc-body">viel Charisma &amp; Lebenslust · unterhaltsam, kommunikativ, energiegeladen, sparsam</div>
+        </div>
+      </div>
+
+      <!-- Mitte -->
+      <div class="mitte-wrap">
+        <div class="dc mitte no-number" id="dc-mitte">
+          <div class="dc-header">
+            <span class="dc-dot" style="background:var(--mitte)"></span>
+            <span class="dc-name">MITTE 0 / 5</span>
+            <span class="dc-badge" id="badge-mitte"></span>
+          </div>
+          <div class="dc-kw">Geistige Energie, Spiritualität, Freiheit, Weite</div>
+          <div class="dc-body">innerlich stabil &amp; selbstbewusst · bewahren die Ruhe · großzügig, vernünftig, hilfsbereit, praktisch veranlagt</div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /left -->
+
+  <!-- ═══ RIGHT: SIGNATURE ═══ -->
+  <div class="sig-col">
+    <div class="sig-card">
+
+      <!-- Empty state -->
+      <div class="sig-empty" id="sig-empty">
+        <div class="sig-empty-ring">☆</div>
+        <p>Geben Sie ein Geburtsdatum ein,<br>um Ihre persönliche Signatur<br>zu erhalten.</p>
+      </div>
+
+      <!-- Filled state -->
+      <div class="sig-filled" id="sig-filled">
+        <div class="sig-head">
+          <div class="sig-nr"    id="sig-nr"></div>
+          <div class="sig-title" id="sig-title"></div>
+          <div class="sig-tagline" id="sig-tagline"></div>
+          <span class="sig-zahlen-badge" id="sig-zahlen"></span>
+        </div>
+
+        <div class="sig-section">
+          <div class="sig-label">
+            <span class="sig-label-dot" style="background:#5b9bd5"></span>
+            <span style="color:#1a4f7a">Kerncharakter &amp; Stärken</span>
+          </div>
+          <div class="sig-text" id="sig-staerken"></div>
+        </div>
+
+        <div class="sig-section">
+          <div class="sig-label">
+            <span class="sig-label-dot" style="background:#e07070"></span>
+            <span style="color:#8a2c2c">Schwächen &amp; Herausforderungen</span>
+          </div>
+          <div class="sig-text" id="sig-schwaechen"></div>
+        </div>
+
+        <div class="sig-section">
+          <div class="sig-label">
+            <span class="sig-label-dot" style="background:#5aaa6a"></span>
+            <span style="color:#2c6a3c">Empfehlungen</span>
+          </div>
+          <div class="sig-text" id="sig-empfehlung"></div>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /right -->
+
+</div><!-- /two-col -->
+
+<script>
+// ─────────────────────────────────────────────────────────────────
+// CONFIGURATION
+// ─────────────────────────────────────────────────────────────────
+const DIR_DIGITS = { nord:[1,6], ost:[3,8], west:[4,9], sued:[2,7], mitte:[0,5] };
+
+// Fixed canonical order for key generation
+const DIR_ORDER = ['nord','ost','sued','west','mitte'];
+
+// ─────────────────────────────────────────────────────────────────
+// 31 SIGNATUREN – keys use canonical DIR_ORDER sort
+// ─────────────────────────────────────────────────────────────────
+const SIG = {
+  // ── Singles ──
+  'nord': {
+    nr:1, title:'Der Norden', tagline:'Genialität und das offene Tor in die Welt hinaus – alle Kräfte weisen nach oben',
+    zahlen:'1 und/oder 6',
+    staerken:'Menschen mit der reinen Norden-Signatur besitzen außergewöhnliche Intelligenz – nicht bloßer Intellekt, sondern echte Genialität. Sie sind neugierig, offen, mutig und denken tiefgründig. Ihr Gespür für Weisheit und Logik macht sie zu natürlichen Denkern, Visionären und Ratgebern. Mit nur einer besetzten Station bauen sie ein feines Lebenswerk auf – sofern sie ihren Schatz heben.',
+    schwaechen:'Die größte Gefahr liegt im Umfeld, das die Besonderheit nicht erkennt – dann entsteht Unsicherheit und das Gefühl, nicht ganz richtig zu liegen. Nein-Sagen fällt schwer, Hilfsbereitschaft wird oft ausgenutzt. Organisatorische Alltagsroutinen liegen weniger.',
+    empfehlung:'Farben: Blau und Schwarz fördern Klarheit und Konzentration. Fehlende Stationen schrittweise erschließen: Rot (Süden), Grün (Osten), Weiß (Westen), Gelb (Mitte). Berufe: Forscher, Schriftsteller, Diplomat, Lehrer, Politiker, Richter, Geisteswissenschaftler.'
+  },
+  'ost': {
+    nr:2, title:'Der Osten', tagline:'Das tiefe Einfühlungsvermögen, die Musikalität und die Begabung zum Heilen – in konzentrierter Dosis',
+    zahlen:'3 und/oder 8',
+    staerken:'Tiefes Einfühlungsvermögen, Musikalität, heilende Fähigkeiten, Gerechtigkeitssinn und Hilfsbereitschaft in konzentrierter Form. Naturverbunden, harmoniebedürftig, kreativ, geduldig, selbstlos. Werden von anderen instinktiv als sicherer Hafen wahrgenommen und haben die seltene Fähigkeit, Menschen und Situationen zu durchschauen.',
+    schwaechen:'Die Welt fühlt sich manchmal an, als wäre jede Oberfläche mit Stacheln besetzt. Nein-Sagen ist mühsam erlernbar. Das Haus oder Herz wird leicht zum offenen Scheunentor für alle Einflüsse. Geschäftssinn und Organisation (fehlender Westen) bereiten Probleme.',
+    empfehlung:'Farbe Grün sparsam einsetzen – davon ist bereits genug vorhanden. Rot für den Süden, Weiß für Willenskraft, Schwarz und Blau für den Norden. Berufe: Heiler, Arzt, Pfleger, Psychologe, Musiker, Sänger, Diplomat, Landwirt, Kindergärtner.'
+  },
+  'sued': {
+    nr:3, title:'Der Süden', tagline:'Das feurige Temperament, die Begeisterungsfähigkeit und die Begabung zum Mitreißen – alles unter einem Dach',
+    zahlen:'2 und/oder 7',
+    staerken:'Unübersehbares Charisma und Lebenslust. Können begeistern und mitreißen, ohne eine Glocke läuten zu müssen. Spontan, kommunikativ, temperamentvoll, energiegeladen. Diese Menschen gehören unter die Leute – geborene Entertainer, Künstler und Vordenker.',
+    schwaechen:'Ungeduld ist kein Fremdwort – Warteschlangen und lange Vorbereitungen sind echte Herausforderungen. Temperamentsausbrüche schrecken die Umgebung. Präzise Organisation liegt fern. Der fehlende Westen macht sich in geschäftlichen Situationen als Lücke bemerkbar.',
+    empfehlung:'Farbe Rot so sparsam wie möglich in Kleidung und Wohnung einsetzen. Weiß für westliche Qualitäten (Willenskraft, Organisation). Grün lädt Einfühlungsvermögen ein. Gelb bringt Besonnenheit der Mitte. Berufe: Schauspieler, Revolutionär, Forscher, Architekt, Philosoph, Maler, Sportler.'
+  },
+  'west': {
+    nr:4, title:'Der Westen', tagline:'Zum Erfolg verurteilt – dankbar angenommenes Geschick',
+    zahlen:'4 und/oder 9',
+    staerken:'Überdurchschnittliches Talent für erfolgreiches Führen und Abwickeln von Geschäften. Handwerklich begabt, tüchtig, geschäftstüchtig, erfolgsorientiert, scharfsinnig, durchsetzungsstark und ehrgeizig. Pflegen gute Beziehungen und sind geborene Macher. Mit nur einer Station kommt konzentrierte Energie zusammen.',
+    schwaechen:'Das starke Pferd braucht Maß und Ziel. Die Umgebung fühlt sich oft überfordert und resigniert. Das tiefe Zufriedenheitsgefühl bleibt trotz aller Leistung manchmal aus. Einfühlungsvermögen und Musikalität (fehlender Osten) sind wenig entwickelt.',
+    empfehlung:'Farbe Weiß (eigene Farbe) sparsam verwenden. Grün (Osten), Gelb (Mitte) und Rot (Süden) als wichtige Ausgleichsfarben. Das Lebenselixier Musik entdecken. Berufe: Erfinder, Handwerker, Techniker, Kaufmann, Mechaniker, Pilot, Rennfahrer, Sportler, Anwalt.'
+  },
+  'mitte': {
+    nr:5, title:'Die Mitte', tagline:'Der geduldige Wanderer zwischen allen Welten – innen und außen daheim',
+    zahlen:'0 und/oder 5',
+    staerken:'Besonders ausgerüstet für Extremsituationen. Die Kraft der Mitte gewährt schnellen Zugang zu Lösungen und lässt schwierige Situationen kaum Zeit, sich einzugraben. Schöpferisch, opferbereit, großzügig, geduldig, spirituell, sympathisch, fürsorglich, vernünftig und hilfsbereit – der Ausgleich für alle Extreme.',
+    schwaechen:'Rasche Abfolge von Herausforderungen birgt die Gefahr blockierender Resignation. Das Pendeln zwischen Häuslichkeit und Fernweh kann verwirrend sein. Die entgiftenden Organe (Leber, Nieren, Lymphe) verdienen besondere Aufmerksamkeit. Gelb in Kleidung und Alltag meiden.',
+    empfehlung:'Viele Farben in Kleidung und Umgebung einsetzen – nur Gelb sparsam. Entschlackungstees bei abnehmendem Mond. Diszipliniertes Essen bei zunehmendem Mond. Berufe: Landwirt, Förster, Gärtner, Politiker, ehrlicher Kaufmann, Geologe, Mäzen, Beschützer.'
+  },
+
+  // ── Zweier ──
+  'nord-ost': {
+    nr:6, title:'Nord-Ost', tagline:'Mit viel Gespür und dem scharfen Blick hinter die Kulissen – die großen Zusammenhänge locken!',
+    zahlen:'1/6 · 3/8',
+    staerken:'„Intelligentes Gespür" – tiefe Zusammenhänge schauen und gleichzeitig großes Einfühlungsvermögen. Diese Menschen lernen leicht, behalten Wissen dauerhaft und interessieren sich für Natur und Weltgeschehen. Eine kraftvolle Kombination aus Intellekt und Empathie, die selten lebendig ist.',
+    schwaechen:'Der fehlende Süden löst manchmal Mangel an Selbstvertrauen aus, selbst bei objektiv großen Talenten. Der fehlende Westen macht sich in geschäftlichen Situationen als Lücke bemerkbar. Manchmal handelt man zu langsam oder zu spät.',
+    empfehlung:'Viel Rot in Kleidung und Wohnung – belebend und selbstvertrauensstärkend. Rote Früchte und Gemüse auf dem Speisezettel. Partner mit Westen-Zahlen für Geschäftliches suchen. Berufe: Arzt, Lehrer, Diplomat, Forscher, Musiker, Schriftsteller, Politiker, Richter.'
+  },
+  'ost-sued': {
+    nr:7, title:'Ost-Süd', tagline:'Fröhlich, hilfsbereit und mit viel Einfühlung – eine höchst lebendige Signatur, wenn man sie pflegt',
+    zahlen:'3/8 · 2/7',
+    staerken:'Friedfertigkeit, naturverbundene Sensibilität, Freiheitsdrang und Temperament in einer Person. Meist sehr musikalisch – das Instrument ist gelebtes Werkzeug der Seele. Das Einfühlungsvermögen macht sie zu geborenen Heilern, Ärzten und Therapeuten.',
+    schwaechen:'Der fehlende Westen hinterlässt eine spürbare Lücke im geschäftlichen Bereich – sollte in späteren Jahren aktiv ergänzt werden. Fehlende Mitte und Norden müssen bewusst entwickelt werden.',
+    empfehlung:'Weiß als Farbe des Westens in Kleidung tragen – stärkt Willenskraft und Organisationstalent. Lange Spaziergänge in der Natur und Gelb im Alltag helfen, die fehlende Mitte zu füllen. Berufe: Heiler, Arzt, Pfleger, Psychologe, Musiker, Diplomat, Landwirt.'
+  },
+  'sued-west': {
+    nr:8, title:'Süd-West', tagline:'Mit Temperament und Ehrgeiz zum Ziel – auf guten Wegen',
+    zahlen:'2/7 · 4/9',
+    staerken:'Temperament und Ehrgeiz zu einer genialen Kombination vereint. Alle Lebensziele liegen in Reichweite – vom leidenschaftlichen Forscher bis zum erfolgreichen Maler. Mit klugem Verstandeseinsatz und notwendiger Durchsetzungskraft kommt man immer ans Ziel.',
+    schwaechen:'Selbstkritik und objektive Analyse fallen manchmal schwer – automatisch sind die anderen schuld. Norden, Osten und Mitte fehlen. Ohne Ergänzung kann Herrschsucht sich breit machen. Der Geldumgang ist manchmal unkontrolliert.',
+    empfehlung:'Grün in der Ernährung und im Alltag – lädt Einfühlungsvermögen ein. Schwarz und Blau für den fehlenden Norden gezielt einsetzen. Regelmäßiges Entgiften. Berufe: Forscher, Maler, Technikfreak, Anwalt, Schauspieler, Sportler.'
+  },
+  'nord-west': {
+    nr:9, title:'Nord-West', tagline:'Willensstärke und Weitblick – auch Großes ist machbar',
+    zahlen:'1/6 · 4/9',
+    staerken:'Durchsetzungsfähigkeit, Disziplin und Willensstärke par excellence. Aufnahmefähig, tiefgründig, entschlossen, kreativ, erfolgsorientiert – jede Tür steht offen. Vom Erfinder bis zum Politiker, vom Journalisten bis zum Schriftsteller ist die Palette breit angelegt.',
+    schwaechen:'Das tiefe Einfühlungsvermögen bleibt oft auf der Strecke (fehlender Osten). Bei starkem Westen-Schwerpunkt kann Rücksichtslosigkeit entstehen. Partner und Kollegen leiden manchmal unter der Herrschsucht, die sich in dieser Signatur breit machen kann.',
+    empfehlung:'Gelb, Grün und Rot als Ausgleichsfarben für fehlende Stationen. Zu Hause Gelb als Vorhang oder Wandfarbe; für öffentliche Auftritte rote Elemente. Berufe: Erfinder, Handwerker, Techniker, Kaufmann, Pilot, Politiker, Schriftsteller, Forscher.'
+  },
+  'nord-mitte': {
+    nr:10, title:'Nord-Mitte', tagline:'Mit Weitblick und der geduldigen Kraft aus der Mitte – ein großer Wissensschatz zur Weitergabe',
+    zahlen:'1/6 · 0/5',
+    staerken:'Lebensnotwendige Weitsicht zeichnet diese Signatur aus. Norden steht für Zielstrebigkeit, Intellekt und Intelligenz; Mitte bringt schöpferisches Denken, Opferbereitschaft, Sympathie und Geduld. Ein ideales Gespann, um Vorhaben in die Tat und in die Öffentlichkeit zu tragen.',
+    schwaechen:'Fehlender Westen: große Ideen erweisen sich manchmal als Luftschlösser mangels Umsetzungskompetenz. Fehlender Süden erzeugt das nagende Gefühl, nicht ernst genommen zu werden. Verträge und Absicherung sind wichtig.',
+    empfehlung:'Schwarz meiden (verstärkt den Norden zu sehr). Weiß und Rot für die fehlenden Stationen gezielt einsetzen. Gelb der Mitte selten unnötig. Berufe: Forscher, Schriftsteller, Politiker, Lehrer, Diplomat, Landwirt, Gärtner.'
+  },
+  'ost-mitte': {
+    nr:11, title:'Ost-Mitte', tagline:'Mit Mitgefühl und der Harmonie aus der Mitte – unterwegs auf guten Wegen',
+    zahlen:'3/8 · 0/5',
+    staerken:'Alle helfenden Berufe sind in dieser Signatur zu Hause. Musikalität, Mitgefühl, Geduld, Kreativität, Selbstlosigkeit, Beharrlichkeit, Fürsorglichkeit und Vernunft – ein reich gefülltes Startpaket. Einfühlungsvermögen und Verständnis für das Gegenüber sind tief entwickelt.',
+    schwaechen:'Das Einfühlungsvermögen kann so stark entwickelt sein, dass die eigenen Bedürfnisse und der gesunde Egoismus zu kurz kommen. Das führt manchmal dazu, keinen eigenen Weg mehr zu gehen. Fehlende Stationen Norden, Süden und Westen müssen ergänzt werden.',
+    empfehlung:'Rot, Weiß und Schwarz in Kleidung und Wohnung einsetzen. Lernen, sich zu wehren ohne andere vor den Kopf zu stoßen. Grün und Gelb eher sparsam. Berufe: Heiler, Arzt, Musiker, Landwirt, Gärtner, Psychologe, Kindergärtner.'
+  },
+  'sued-mitte': {
+    nr:12, title:'Süd-Mitte', tagline:'Fröhliches Temperament verbindet sich mit dem Willen zur Harmonie – ein glücklicher Weg',
+    zahlen:'2/7 · 0/5',
+    staerken:'Fröhlich, temperamentvoll, mit dem Willen zur Harmonie. Werden in der Öffentlichkeit wahrgenommen und leisten fast immer Besonderes. Die Mitte kanalisiert das Feuer in geregelte Bahnen, wenn man sich aktiv darum bemüht. Spitzensportler finden sich häufig hier.',
+    schwaechen:'Dem Temperament Bremsen anzulegen ist sinnlos, es braucht aber Kanalisierung in gesunde Bahnen. Norden, Osten und Westen fehlen komplett und müssen bewusst erschlossen werden.',
+    empfehlung:'Grün für den Osten einsetzen. Weiß für den Westen. Kinder dieser Signatur brauchen viel Auslauf. Berufe: Sportler, Schauspieler, Künstler, Entertainer und alle öffentlichen Tätigkeiten.'
+  },
+  'west-mitte': {
+    nr:13, title:'West-Mitte', tagline:'Aus eigener Kraft und mit Geduld zum Erfolg – auch Grenzen zum Unbekannten können überschritten werden',
+    zahlen:'4/9 · 0/5',
+    staerken:'Stark erfolgsorientiert, aber mit innerer Stabilität durch die Mitte. Schaffen sich, was sie brauchen, ohne viel Theater. Pflegeleicht und selbstbewusst. Erfinder und Extremsportler sind hier zu Hause. Längere Phasen des Rückzugs sind wichtig und gesund.',
+    schwaechen:'Öffentlichkeit kann unangenehm werden. Fehlender Norden: Ideen erweisen sich manchmal als Luftschlösser. Fehlender Süden und Osten hinterlassen Lücken in Empathie und Temperament.',
+    empfehlung:'Rot als Ausgleichsfarbe für den fehlenden Süden in Kleidung, Wohnung und Büro. Grün für den Osten. Schwarz und Blau für den Norden. Berufe: Erfinder, Handwerker, Extremsportler, Pilot, Mechaniker.'
+  },
+  'nord-sued': {
+    nr:14, title:'Nord-Süd', tagline:'Freude am Entdecken, Freude an der Weitergabe – das Abenteuer leben!',
+    zahlen:'1/6 · 2/7',
+    staerken:'Pioniere in vielen Lebensbereichen – Schriftsteller, Politiker, Richter, Architekten, Philosophen. Die Energiekombination von Norden und Süden sorgt für den nötigen Schwung. Aufnahmefähig, abenteuerlustig, wissensdurstig – bereit Wissen weiterzugeben ohne verborgene Handelsabsicht.',
+    schwaechen:'Höchste Positionen werden nicht immer erreicht, weil das Durchsetzungsvermögen des Westens fehlt. Osten und Mitte fehlen – Einfühlungsvermögen und Erdung müssen bewusst entwickelt werden.',
+    empfehlung:'Weiß, Grün und Gelb als Ausgleichsfarben. Für Männer genügt oft ein dünnes grünes oder weißes Armband. Berufe: Schriftsteller, Politiker, Richter, Architekt, Philosoph, Lehrer, Sportler, Pilot, Arzt.'
+  },
+  'ost-west': {
+    nr:15, title:'Ost-West', tagline:'Kreative Tüchtigkeit und einfühlende Harmonie – ein Erfolgsmodell in Aktion',
+    zahlen:'3/8 · 4/9',
+    staerken:'Tüchtigkeit, Naturverbundenheit, Kreativität, Scharfsinn und Harmonie verbinden sich zu Genauigkeit. Menschen dieser Signatur werden überall gebraucht und überall einsetzbar. Erfolg ist gleichsam vorprogrammiert.',
+    schwaechen:'Fehlender Süden erzeugt das Gefühl, zu kurz zu kommen und nicht genügend Würdigung zu finden. Fehlender Norden führt manchmal zu ungesundem Konkurrenzdenken. Die fehlende Mitte macht Kompromisse schwer.',
+    empfehlung:'Blau oder Schwarz für den Norden, Rot für den Süden, Gelb für die Mitte gezielt einsetzen. Berufe: Musiker, Heiler, Arzt, Techniker, Kaufmann, Handwerker, Politiker.'
+  },
+
+  // ── Dreier ──
+  'nord-ost-sued': {
+    nr:16, title:'Nord-Ost-Süd', tagline:'Entschlossenheit, Temperament, Mitgefühl – ein erfolgreicher Dreiklang',
+    zahlen:'1/6 · 3/8 · 2/7',
+    staerken:'Ob als Sänger, Schauspieler, Arzt oder Freiheitskämpfer – diese Signatur ist bestens gerüstet, unbeirrt und letztlich erfolgreich einen eigenen Weg zu gehen. Der Osten bringt Mitgefühl und langen Atem, der Süden Temperament und Ausstrahlung, der Norden tiefgründige Aufnahmefähigkeit und Entschlossenheit. Musik liegt im Blut.',
+    schwaechen:'Der fehlende Westen hinterlässt eine Lücke in geschäftlichen Angelegenheiten. Ohne Organisationstalent und Durchhaltevermögen für Alltagsroutinen bleiben manche Ideen unrealisiert. Die Mitte fehlt ebenfalls.',
+    empfehlung:'Weiß für den Westen in Kleidung und Arbeitsumgebung. Gelb für die fehlende Mitte. Einen guten Berater mit Westen-Zahlen im Geburtsdatum suchen. Berufe: Sänger, Schauspieler, Arzt, Musiker, Lehrer, Sportler, Politiker.'
+  },
+  'ost-sued-west': {
+    nr:17, title:'Ost-Süd-West', tagline:'Die Freude am Lebendigwerden von Träumen – im guten Gleichgewicht von Gefühl und Verstand',
+    zahlen:'3/8 · 2/7 · 4/9',
+    staerken:'Friedfertigkeit, Kreativität, Temperament und geschäftliches Geschick unter einem Dach. Überall gern gesehen, musikalisch, empathisch und geschäftstüchtig. Gute Ärzte, die aus innerer Berufung helfen wollen, finden sich häufig in dieser Kombination.',
+    schwaechen:'Der fehlende Norden macht sich beim schulischen Lernen und in der Ausdauer für lange Projekte bemerkbar. Manchmal fehlt die Entschlossenheit. Das Tragen von Weiß stärkt westliche Willenskraft.',
+    empfehlung:'Immer viel Weiß tragen. Schwarz und Blau für Nordenergie. Berater mit Norden-Zahlen suchen. Berufe: Arzt, Heiler, Musiker, Therapeut, Schauspieler, Sportler.'
+  },
+  'nord-sued-west': {
+    nr:18, title:'Nord-Süd-West', tagline:'Mit Ausdauer und Klugheit zum zählbaren Erfolg – und darüber hinaus',
+    zahlen:'1/6 · 2/7 · 4/9',
+    staerken:'Diese Signatur fällt meistens auf die Füße, wenn sie fällt. Risikobereit, klug kalkulierend, mit kühlem Verstand und genug Temperament für den nötigen Schwung. Geld ist vorhanden, man liebt es – und das ist in Ordnung.',
+    schwaechen:'Fehlender Osten bedeutet fehlende Empathie in privaten Beziehungen. Fehlende Mitte erzeugt innere Unruhe. Die Neigung zum Jähzorn sollte nicht bestraft, sondern mit Liebe und Verständnis begleitet werden.',
+    empfehlung:'Gelb und Grün als Ausgleichsfarben. Mit der Farbe Grün in Ernährung, Kleidung und Wohnung den Alltag harmonisieren. Berufe: Unternehmer, Politiker, Schriftsteller, Sportler, Arzt, Pilot.'
+  },
+  'nord-ost-west': {
+    nr:19, title:'Nord-Ost-West', tagline:'Geschick in allen Dingen, Beharrlichkeit und Gefühl – die Mischung für einen guten Weg',
+    zahlen:'1/6 · 3/8 · 4/9',
+    staerken:'Scharfer Verstand, Einfühlungsvermögen und gesunder Geschäftssinn vereint – eine glückliche Mischung. Diese Signatur verspricht eine stabilisierende Kraft im Leben. Intelligenz, Empathie und Durchsetzungskraft in einer Person.',
+    schwaechen:'Fehlender Süden: das nagende Gefühl, nicht ernst genommen oder übersehen zu werden. Fehlende Mitte hinterlässt eine Lücke in der inneren Stabilität und Selbstdarstellung.',
+    empfehlung:'Rot in Kleidung und Wohnung für den fehlenden Süden. Gelb für die fehlende Mitte. Musik täglich für einige Minuten hören. Berufe: Architekt, Mediziner, Journalist, Politiker, Forscher, Diplomat.'
+  },
+  'nord-ost-mitte': {
+    nr:20, title:'Nord-Ost-Mitte', tagline:'Überzeugend und charismatisch ins Rampenlicht, mit sensibler Einfühlung und der Kraft aus der Mitte',
+    zahlen:'1/6 · 3/8 · 0/5',
+    staerken:'Norden gibt Zielstrebigkeit und Neugier, Osten Beharrlichkeit und Verantwortungsgefühl, Mitte sorgt für Ausgleich und Stabilität. Eine gute Basis für Zufriedenheit – die Suche nach dem fehlenden Etwas gehört zum Lebensweg.',
+    schwaechen:'Das Gefühl, dass etwas zu meinem Glück fehlt, lässt manchmal keine Ruhe. Bei fehlendem Süden und Westen besteht die Gefahr der Selbstaufopferung. Grenzen setzen lernen ist wichtig.',
+    empfehlung:'Rot für den Süden, Weiß für den Westen in Kleidung und Alltag. Meditation und das Erlernen des Zuhörens als tägliche Praxis. Berufe: Journalist, Diplomat, Forscher, Musiker, Arzt, Lehrer.'
+  },
+  'ost-sued-mitte': {
+    nr:21, title:'Ost-Süd-Mitte', tagline:'Mit Temperament und Redegewandtheit im geduldigen Einsatz für die gute Sache',
+    zahlen:'3/8 · 2/7 · 0/5',
+    staerken:'Die Zahlen der Mitte verleihen ausgleichende, vermittelnde und beruhigende Kraft. Kreativität, Musikalität, Empathie, Temperament und innere Stabilität in einer Person. Soziale Einrichtungen, Hilfsorganisationen und öffentliche Arbeit liegen dieser Signatur nah.',
+    schwaechen:'Das Unterdrücken des Temperaments führt langfristig zu Problemen. Fehlender Norden fehlt für klare Verhältnisse; fehlender Westen macht Geschäftliches schwierig.',
+    empfehlung:'Schwarz für den Norden, Weiß und Blau für den Westen in Kleidung und Wohnung. Berufe: Sozialarbeiter, Musiker, Heiler, Therapeut, Lehrer, Diplomat.'
+  },
+  'sued-west-mitte': {
+    nr:22, title:'Süd-West-Mitte', tagline:'Guten Dingen den Start erleichtern – mit Hingabe und Gefühl für den richtigen Zeitpunkt',
+    zahlen:'2/7 · 4/9 · 0/5',
+    staerken:'Praktisch denkend, handwerklich interessiert, geschäftstüchtig, temperamentvoll, zielstrebig. Die Mitte verleiht besondere innere Kraft. Nicht nur wagemütige Erfinder, sondern auch abenteurerlustige Eroberer sind hier zu Hause. Süden, Westen und Mitte bilden ein faszinierendes Trio.',
+    schwaechen:'Fehlender Norden: kann manchmal schwer ertragen, dass es vielleicht klügere Menschen gibt. Fehlender Osten hinterlässt eine Lücke in der Empathie. Ohne Mitgefühl kann Rücksichtslosigkeit entstehen.',
+    empfehlung:'Grün, Schwarz und Blau als Fortbewegungsfarben in Richtung Lebensglück. Grün in Kleidung, Haus und Wohnung gleicht vieles aus. Berufe: Unternehmer, Erfinder, Handwerker, Sportler, Schauspieler, Techniker.'
+  },
+  'nord-west-mitte': {
+    nr:23, title:'Nord-West-Mitte', tagline:'Mit langem Atem zum Erfolg aller Unternehmungen – unterstützt von der besonnenen Kraft der Mitte',
+    zahlen:'1/6 · 4/9 · 0/5',
+    staerken:'Gut entwickeltes Gespür für Geschäfte aller Art, verbunden mit der nötigen Kraft und dem langen Atem. Der scharfe Geist des Nordens kombiniert mit dem Durchsetzungsvermögen des Westens bringt so manchen Träger bis zum Chefsessel. Erfinder, Entdecker, Piloten sind hier zu Hause.',
+    schwaechen:'Ist der Westen stärker besetzt, wächst die Neigung zu Alleingängen – Teamarbeit wird zur echten Herausforderung. Das fehlende Temperament des Südens und die fehlende Empathie des Ostens müssen bewusst ergänzt werden.',
+    empfehlung:'Rote Wände oder Tischwäsche für den fehlenden Süden. Grün für den Osten – als Zimmerpflanze oder in der Kleidung. Berufe: Unternehmer, Erfinder, Pilot, Chef, Entdecker, Architekt.'
+  },
+  'nord-sued-mitte': {
+    nr:24, title:'Nord-Mitte-Süd', tagline:'Überzeugend und charismatisch – hinaus in die Öffentlichkeit, mit Temperament und Kraft aus der Mitte',
+    zahlen:'1/6 · 2/7 · 0/5',
+    staerken:'Die Generalrichtung ist Öffentlichkeitsarbeit und Medienwelt. Diese Menschen gehören ins Licht der öffentlichen Aufmerksamkeit – vom charismatischen Vortragenden bis zum Pressesprecher. Die Mitte hält alles im Gleichgewicht und sorgt für Erdung.',
+    schwaechen:'Fehlender Westen und Osten hinterlassen Lücken in Geschäftssinn und Empathie. Ohne den Osten können manche Situationen unterkühlt eingeschätzt werden.',
+    empfehlung:'Weiß und Grün als Ausgleichsfarben in Kleidung und Alltag. Manuelles Geschick entwickeln; die Finanzen fest im Griff halten. Berufe: Moderator, Journalist, Schauspieler, Politiker, Redner, Manager.'
+  },
+  'ost-west-mitte': {
+    nr:25, title:'Ost-Mitte-West', tagline:'Einfühlungsvermögen kombiniert mit Gefühl fürs Business, ausbalanciert durch eine starke Mitte – manchmal genial',
+    zahlen:'3/8 · 4/9 · 0/5',
+    staerken:'Außergewöhnliche Menschen – eine Begegnung bleibt im Gedächtnis. Der Westen bringt das sorgfältig Durchdachte, die Mitte Verlässlichkeit und Treue, der Osten Liebenswürdigkeit und Sensibilität. Eine geniale Mischung, besonders für Musiker und Heilberufe.',
+    schwaechen:'Nicht immer früh gelernt, mit der eigenen Energie gesund umzugehen – brauchen Abstand von Menschen. Fehlende Stationen Norden und Süden bedeuten weniger öffentliche Energie, dafür tiefe Substanz.',
+    empfehlung:'Schwarz oder Rot bei Auftritten tragen für Sicherheit. Für Westen-Schwerpunkt: Banker, Erfinder, Pilot, Forscher. Für Mitte-Schwerpunkt: sozialer Bereich, Heilberufe, Betreuung.'
+  },
+
+  // ── Vierer ──
+  'nord-ost-sued-mitte': {
+    nr:26, title:'Nord-Ost-Süd-Mitte', tagline:'Mit einer vielfarbigen Palette von Talenten – unbehelligt von materiellen Fesseln',
+    zahlen:'1/6 · 3/8 · 2/7 · 0/5',
+    staerken:'„Der ideenreiche Mensch" – Träger lernen nicht, sie wissen. Wache Neugier, tiefgründige Sanftmut, Leidenschaft für Veränderungen. Spiritualität ist angeboren. Nicht selten Spätzünder im Leben – dann aber mit vollem Einsatz und vielfältiger Wirkung.',
+    schwaechen:'Fehlender Westen (Geld, Ordnung, Geschäftssinn) kann gravierend wirken. Geld ist meist nicht wichtig – was zum konkreten Problem werden kann. Naivität und übergroßes Vertrauen müssen überwunden werden.',
+    empfehlung:'Weiß für den Westen – so viel wie möglich in Kleidung und Büro. Manuelles Geschick entwickeln (Basteln, Handwerk). Kassasturz einmal wöchentlich. Berufe: Förster, Sportler, Schauspieler, Musiker, Heiler, Arzt, Geologe, Maler.'
+  },
+  'ost-sued-west-mitte': {
+    nr:27, title:'Ost-Süd-West-Mitte', tagline:'Mit Herz und Verstand – alle Wege stehen offen, auch die stillen',
+    zahlen:'3/8 · 2/7 · 4/9 · 0/5',
+    staerken:'Fast perfekt in der Ausstattung des Schatzkästchens. Überall gern gesehen; klug im Umgang mit Finanzen; die Mitte sorgt für Vernunft. Man kann mit ihnen Pferde stehlen. Der fehlende Norden ist die einzige echte Herausforderung.',
+    schwaechen:'Fehlender Norden macht sich beim schulischen Lernen und in langfristigen Projekten bemerkbar. Manchmal fehlt die Konsequenz für Entscheidungen. Meditation und Farben Schwarz und Blau helfen.',
+    empfehlung:'Schwarz und Blau als Farben des Nordens in Kleidung und Alltag. Zahlen 6 und 1 auf einem grünen Zettel in der Hosentasche. Berufe: Arzt, Musiker, Heiler, Therapeut, Unternehmer, Sportler.'
+  },
+  'nord-sued-west-mitte': {
+    nr:28, title:'Nord-Süd-West-Mitte', tagline:'Mit klarem Verstand, Leidenschaft und Genialität – für eine bessere Welt',
+    zahlen:'1/6 · 2/7 · 4/9 · 0/5',
+    staerken:'Wenn dieser Mensch auftritt, freut sich die ganze Welt. Starke Ausstrahlung lässt niemanden unbeeindruckt. Fähigkeiten von denen viele nur träumen. Schauspieler, Politiker, geniale Musiker – keine Seltenheit. Warmherzig, ehrlich, scharfer Verstand, Ambitionen stehen ihnen zu.',
+    schwaechen:'Fehlender Osten macht sich im privaten Bereich schmerzlich bemerkbar – Empathie muss bewusst entwickelt werden. Das richtige Maß zu halten wenn Schlüsselfiguren fehlen, kann schwierig sein.',
+    empfehlung:'Viel Spazierengehen im Grünen. Zahlen 8 und 3 auf einem Zettel in der Hosentasche. Grün in Kleidung und Zimmerpflanzen harmonisiert unauffällig. Berufe: Schauspieler, Politiker, Musiker, Erfinder, Unternehmer, Sportler.'
+  },
+  'nord-ost-west-mitte': {
+    nr:29, title:'Nord-Ost-West-Mitte', tagline:'Bereit, die Welt zu erobern und zu verbessern – und fähig dazu',
+    zahlen:'1/6 · 3/8 · 4/9 · 0/5',
+    staerken:'Mit so vielen Fähigkeiten ausgestattet, dass man ausrufen möchte: Toll! Erfolge schmecken manchmal süßer als anderen, weil sie hart erarbeitet wurden. Auch noch die kleinste Lücke kann zum Vorteil aller gefüllt werden.',
+    schwaechen:'Fehlender Süden: das Gefühl, es könnte mehr gewesen sein – auch nach großem Erfolg. Neigung, nach Partys ins schwarze Loch der Selbstzweifel zurückzufallen. Hohe Ansprüche an sich selbst.',
+    empfehlung:'Rot als Medizin – niemals aus den Augen lassen. Rotes Armband, rote Wände. Auf Partys und Veranstaltungen den Süden auftanken. Berufe: Schauspieler, Politiker, Erfinder, Forscher, Unternehmer, Sportler.'
+  },
+  'nord-ost-sued-west': {
+    nr:30, title:'Nord-Ost-Süd-West', tagline:'Alle Wege stehen offen – Träume können Wirklichkeit werden',
+    zahlen:'1/6 · 3/8 · 2/7 · 4/9',
+    staerken:'Alle vier Himmelsrichtungen – ideal ausgestattet für alle denkbaren Ziele. Nachdenken, tüfteln, überlegen – dann kann es losgehen. Selbstbewusstsein gegründet auf Echtheit und Wesentliches. Im 21. Jahrhundert wird diese Signatur mit Erfindungen, Liedern und Literatur glänzen.',
+    schwaechen:'Keine Signatur wird so verkannt – weil sie im Stillen arbeitet und erst auftaucht wenn wirklich etwas zu sagen ist. Die fehlende Mitte (0/5) sorgt für wiederkehrende Unzufriedenheit und fehlendes Nestgefühl.',
+    empfehlung:'Häufige Aufenthalte in der Natur – Spazierengehen, Pilze sammeln, Blumen. Viele Blumen in der Wohnung, kleiner Kräutergarten. Gelb als Farbe der Mitte im Alltag einsetzen. Berufe: Erfinder, Schriftsteller, Musiker, Forscher, Politiker – wenn Sie wollen, können Sie alles!'
+  },
+
+  // ── Alle Stationen ──
+  'alle': {
+    nr:31, title:'Alle Stationen im Zahlenrad', tagline:'Alle Wege stehen offen – die seltene vollständige Signatur',
+    zahlen:'alle Zahlen vorhanden',
+    staerken:'Fast möchte man sagen: Das große Los! Es gibt kaum etwas, das wirklich schwer fällt. Die anerzogenen Schwächen entsprechen nicht den mitgebrachten Talenten. Höchstens eine Station ist doppelt besetzt – überall gleich große Chancen, die wahre Berufung zu finden.',
+    schwaechen:'In jungen Jahren kann die Fülle der Interessen zur inneren Blockade führen – Spätzünder sind keine Seltenheit. Langeweile in der Schule führt manchmal zum Problemkind-Stempel, obwohl das Gegenteil stimmt. Maßhalten wird nicht in die Wiege gelegt.',
+    empfehlung:'Dem Gefühl folgen, was zutiefst Freude macht – finanzielle Überlegungen zurückstellen. Viele Erfahrungen sammeln, um die Berufung herauszukristallisieren. Das aktuelle Datum nützen. Berufe: buchstäblich alle – Förster, Sportler, Schauspieler, Musiker, Heiler, Arzt, Forscher oder Unternehmer.'
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────────────
+function extractDigits(dateStr) {
+  const parts = dateStr.split('.');
+  if (parts.length !== 3) return null;
+  const [d, m, y] = parts;
+  if (y.length < 2) return null;
+  const dayStr = String(parseInt(d, 10));
+  const monStr = String(parseInt(m, 10));
+  const yy     = y.slice(-2);
+  return [...(dayStr + monStr + yy)].map(Number);
+}
+
+function formatAnzeige(dateStr) {
+  const parts = dateStr.split('.');
+  if (parts.length !== 3) return dateStr;
+  const [d, m, y] = parts;
+  return y.length === 4 ? `${d}.${m}.(${y.slice(0,2)})${y.slice(2)}` : dateStr;
+}
+
+function makeSigKey(assigned) {
+  const active = DIR_ORDER.filter(d => assigned[d].length > 0);
+  if (active.length === 5) return 'alle';
+  return active.join('-');
+}
+
+function setBubble(id, nums, letter) {
+  const el = document.getElementById(id);
+  if (!nums || nums.length === 0) {
+    el.className = el.className.replace(' ', ' ') ; // keep classes
+    el.classList.add('empty');
+    el.innerHTML = letter;
+    return;
+  }
+  el.classList.remove('empty');
+  const sum   = nums.reduce((a,b) => a+b, 0);
+  const arrow = sum > 10 ? `<div class="barrow">↑</div>` : '';
+  el.innerHTML = `<div class="bnum">${nums.join(',')}</div>${arrow}`;
+}
+
+function setBadge(id, nums) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (!nums || nums.length === 0) { el.textContent = ''; return; }
+  const sum = nums.reduce((a,b) => a+b, 0);
+  el.textContent = nums.join(',') + (sum > 10 ? ' ↑' : '');
+}
+
+function setDirCard(id, hasNums) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  hasNums ? el.classList.remove('no-number') : el.classList.add('no-number');
+}
+
+function showSig(key, name) {
+  const data = SIG[key];
+  if (!data) return;
+
+  document.getElementById('sig-empty').style.display  = 'none';
+  const sf = document.getElementById('sig-filled');
+  sf.style.display = 'flex';
+
+  document.getElementById('sig-nr').textContent       = `Signatur ${data.nr} von 31`;
+  document.getElementById('sig-title').textContent    = data.title + (name ? '  ·  ' + name : '');
+  document.getElementById('sig-tagline').textContent  = data.tagline;
+  document.getElementById('sig-zahlen').textContent   = '✦  ' + data.zahlen;
+  document.getElementById('sig-staerken').textContent = data.staerken;
+  document.getElementById('sig-schwaechen').textContent = data.schwaechen;
+  document.getElementById('sig-empfehlung').textContent = data.empfehlung;
+}
+
+function hideSig() {
+  document.getElementById('sig-empty').style.display = 'flex';
+  document.getElementById('sig-filled').style.display = 'none';
+}
+
+// ─────────────────────────────────────────────────────────────────
+// MAIN
+// ─────────────────────────────────────────────────────────────────
+function berechne() {
+  const raw    = document.getElementById('inp-datum').value.trim();
+  const name   = document.getElementById('inp-name').value.trim();
+  const digits = extractDigits(raw);
+
+  if (!digits || digits.length < 4) {
+    document.getElementById('datum-anzeige').textContent = '⚠ Bitte Datum im Format TT.MM.JJJJ eingeben.';
+    hideSig();
+    return;
+  }
+
+  document.getElementById('datum-anzeige').textContent =
+    (name ? name + '  ·  ' : '') + formatAnzeige(raw);
+
+  // Assign digits to directions
+  const assigned = { nord:[], ost:[], west:[], sued:[], mitte:[] };
+  for (const d of digits) {
+    for (const [dir, cfg] of Object.entries(DIR_DIGITS)) {
+      if (cfg.includes(d)) assigned[dir].push(d);
+    }
+  }
+
+  // Update bubbles & direction cards
+  const dirMap = { nord:'N', ost:'O', west:'W', sued:'S', mitte:'M' };
+  Object.keys(assigned).forEach(dir => {
+    setBubble(`b-${dir}`,    assigned[dir], dirMap[dir]);
+    setBadge(`badge-${dir}`, assigned[dir]);
+    setDirCard(`dc-${dir}`,  assigned[dir].length > 0);
+  });
+
+  // Show signature
+  const key = makeSigKey(assigned);
+  if (SIG[key]) {
+    showSig(key, name);
+  } else {
+    hideSig();
+  }
+}
+
+// Auto-format date
+document.getElementById('inp-datum').addEventListener('input', function () {
+  let v = this.value.replace(/\D/g, '');
+  if (v.length > 2) v = v.slice(0,2) + '.' + v.slice(2);
+  if (v.length > 5) v = v.slice(0,5) + '.' + v.slice(5);
+  if (v.length > 10) v = v.slice(0,10);
+  this.value = v;
+});
+document.getElementById('inp-datum').addEventListener('keydown', e => {
+  if (e.key === 'Enter') berechne();
+});
+</script>
+</body>
+</html>
